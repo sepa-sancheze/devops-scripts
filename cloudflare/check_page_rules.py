@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from requests.exceptions import RequestException
+from tabulate import tabulate
 from typing import Dict, List, Union
 import os
 import requests
@@ -92,8 +93,15 @@ def add_page_rules():
                 print(f"Error fetching page rules for zone {zone_name}: {e}")
 
 def show_zones():
-    for x in ZONES:
-        print(f"{ x } - { ZONES[x][0] } - { ZONES[x][1] }")
+    """Print all zones with their IDs and page rules in a tabular format."""
+    table_data = []
+    for zone_name, zone_data in ZONES.items():
+        zone_id = zone_data[0]
+        page_rules = ', '.join(zone_data[1])
+        table_data.append([zone_name, zone_id, page_rules])
+    
+    headers = ["Zone Name", "Zone ID", "Page Rules"]
+    print(tabulate(table_data, headers, tablefmt="grid"))
 
 if __name__ == "__main__":
     if check_token_is_valid():
