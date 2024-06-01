@@ -40,7 +40,6 @@ def check_token_is_valid() -> bool:
         print(f"Error verifying token: {e}")
         return False
 
-
 def get_zones() -> None:
     """Retrieve all the zones of the account."""
     request_url = f"{BASE_URL}/zones"
@@ -66,8 +65,7 @@ def get_zones() -> None:
     except RequestException as e:
         print(f"Error fetching zones: {e}")
 
-
-def add_page_rules():
+def add_page_rules() -> None:
     """Fetch and add page rules for each zone."""
     with requests.Session() as session:
         session.headers.update({
@@ -92,7 +90,7 @@ def add_page_rules():
             except RequestException as e:
                 print(f"Error fetching page rules for zone {zone_name}: {e}")
 
-def show_zones():
+def show_zones() -> None:
     """Print all zones with their IDs and page rules in a tabular format."""
     table_data = []
     for zone_name, zone_data in ZONES.items():
@@ -102,6 +100,10 @@ def show_zones():
     
     headers = ["Zone Name", "Zone ID", "Page Rules"]
     print(tabulate(table_data, headers, tablefmt="grid"))
+
+def unset_variables() -> None:
+    os.environ.pop("BASE_URL")
+    os.environ.pop("ACCOUNT_API_TOKEN")
 
 if __name__ == "__main__":
     if check_token_is_valid():
@@ -119,9 +121,7 @@ if __name__ == "__main__":
         show_zones()
 
         # Clear variables
-        os.environ.pop("BASE_URL")
-        os.environ.pop("ACCOUNT_API_TOKEN")
-
+        unset_variables()
 
     else:
         print("Token is invalid or is expired!")
