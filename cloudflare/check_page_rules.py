@@ -67,19 +67,29 @@ def get_zones() -> None:
 
 
 def add_page_rules():
-    # Get rules on every zone
-    for zone in ZONES:
-        request_url = BASE_URL + "/zones/" + ZONES[zone][0] + "/pagerules"
-
-        request_headers = {
+    """Fetch and add page rules for each zone."""
+    with requests.Session() as session:
+        session.headers.update({
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + ACCOUNT_API_TOKEN
-        }
+            "Authorization": f"Bearer {ACCOUNT_API_TOKEN}"
+        })
 
-        request_response = requests.get(url=request_url, headers=request_headers).json()
+        for zone_name, zone_data in ZONES.items():
+            zone_id = zone_data[0]
+            request_url = f"{BASE_URL}/zones/{zone_id}/pagerules"
 
-        for action in request_response['result']:
-            ZONES[zone][1].append(action['actions'][0]['id'])
+            try:
+                response = session.get(url=request_url)
+                response.raise_for_status()
+                response_json = response.json()
+
+                if response_json.get('success', False):
+                    for action in response_json['result']:
+                        if 'actions' in action and action['actions']:
+                            ZONES[zone_name][1].append(action['actions'][0]['id'])
+
+            except RequestException as e:
+                print(f"Error fetching page rules for zone {zone_name}: {e}")
 
 def show_zones():
     for x in ZONES:
