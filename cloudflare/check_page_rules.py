@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from requests.exceptions import RequestException
 import os
 import requests
 
@@ -19,18 +20,24 @@ ACCOUNT_API_TOKEN = os.getenv('ACCOUNT_API_TOKEN')
 # Position 1 -> Array with Page Rules
 ZONES = {}
 
-def check_token_is_valid():
-    # Check that token is active:
-    request_url = BASE_URL + "/user/tokens/verify"
+def check_token_is_valid() -> bool:
+    """Check that the API token is active and valid."""
+    request_url = f"{BASE_URL}/user/tokens/verify"
 
     request_headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + ACCOUNT_API_TOKEN
+        "Authorization": f"Bearer {ACCOUNT_API_TOKEN}"  
     }
 
-    request_response = requests.get(url=request_url, headers=request_headers).json()
+    try:
+        response = requests.get(url=request_url, headers=request_headers)
+        response.raise_for_status()
+        return response.json().get('success', False)
 
-    return request_response['success'] == True
+    except RequestException as e:
+        print(f"Error verifying token: {e}")
+        return False
+
 
 def get_zones():
     # Get all the zones of the account
@@ -83,6 +90,11 @@ if __name__ == "__main__":
 
         # Shows all the zones and their data.
         show_zones()
+
+        # Clear variables
+        os.environ.pop("BASE_URL")
+        os.environ.pop("ACCOUNT_API_TOKEN")
+
 
     else:
         print("Token is invalid or is expired!")
