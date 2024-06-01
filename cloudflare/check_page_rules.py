@@ -74,12 +74,15 @@ if __name__ == "__main__":
         print("Token is Valid!")
 
         print("----- Checking Page rules of domains...")
+
+        # Will obtain all the Zones available on the account
         get_zones()
 
+        # Will add all the Page Rules that are available on each domain
         add_page_rules()
 
+        # Shows all the zones and their data.
         show_zones()
-
 
     else:
         print("Token is invalid or is expired!")
