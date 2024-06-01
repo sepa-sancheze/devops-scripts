@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from requests.exceptions import RequestException
+from typing import Dict, List, Union
 import os
 import requests
 
@@ -18,7 +19,7 @@ ACCOUNT_API_TOKEN = os.getenv('ACCOUNT_API_TOKEN')
 #
 # Position 0 -> Id of the zone
 # Position 1 -> Array with Page Rules
-ZONES = {}
+ZONES: Dict[str, Union[str, List[str]]] = {}
 
 def check_token_is_valid() -> bool:
     """Check that the API token is active and valid."""
@@ -39,23 +40,31 @@ def check_token_is_valid() -> bool:
         return False
 
 
-def get_zones():
-    # Get all the zones of the account
-    request_url = BASE_URL + "/zones"
+def get_zones() -> None:
+    """Retrieve all the zones of the account."""
+    request_url = f"{BASE_URL}/zones"
 
     request_headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + ACCOUNT_API_TOKEN
+        "Authorization": f"Bearer {ACCOUNT_API_TOKEN}"
     }
+    try:
+        response = requests.get(url=request_url, headers=request_headers)
+        response.raise_for_status()
+        response_json = response.json()
 
-    request_response = requests.get(url=request_url, headers=request_headers).json()
+        if response_json.get('success', False):
+            total_pages = response_json['result_info']['total_pages']
+            with requests.Session() as session:
+                session.headers.update(request_headers)
+                for page in range(1, total_pages + 1):
+                    page_response = session.get(url=request_url, params={'page': page}).json()
+                    for site in page_response['result']:
+                        ZONES[site['name']] = [site['id'], []]
 
-    if request_response['success'] == True:
-        for page in range(1, request_response['result_info']['total_pages'] + 1):
-            for site in requests.get(url=request_url, headers=request_headers, params={'page': page}).json()['result']:
-                ZONES[site['name']] = [site['id'], []]
-    else:
-        print('error')
+    except RequestException as e:
+        print(f"Error fetching zones: {e}")
+
 
 def add_page_rules():
     # Get rules on every zone
