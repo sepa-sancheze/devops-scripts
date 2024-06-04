@@ -9,8 +9,8 @@ import requests
 load_dotenv()
 
 # Assing environment variables to local variables
-BASE_URL = os.getenv('BASE_URL')
-ACCOUNT_API_TOKEN = os.getenv('ACCOUNT_API_TOKEN')
+BASE_URL = os.getenv("BASE_URL")
+ACCOUNT_API_TOKEN = os.getenv("ACCOUNT_API_TOKEN")
 
 # Global variables
 # This variable will contain all the information needed to save the zone file
@@ -34,7 +34,7 @@ def check_token_is_valid() -> bool:
     try:
         response = requests.get(url=request_url, headers=request_headers)
         response.raise_for_status()
-        return response.json().get('success', False)
+        return response.json().get("success", False)
 
     except RequestException as e:
         print(f"Error verifying token: {e}")
@@ -53,14 +53,14 @@ def get_zones() -> None:
         response.raise_for_status()
         response_json = response.json()
 
-        if response_json.get('success', False):
-            total_pages = response_json['result_info']['total_pages']
+        if response_json.get("success", False):
+            total_pages = response_json["result_info"]["total_pages"]
             with requests.Session() as session:
                 session.headers.update(request_headers)
                 for page in range(1, total_pages + 1):
-                    page_response = session.get(url=request_url, params={'page': page}).json()
-                    for site in page_response['result']:
-                        ZONES[site['name']] = [site['id'], []]
+                    page_response = session.get(url=request_url, params={"page": page}).json()
+                    for site in page_response["result"]:
+                        ZONES[site["name"]] = [site["id"], []]
 
     except RequestException as e:
         print(f"Error fetching zones: {e}")
@@ -82,10 +82,10 @@ def add_page_rules() -> None:
                 response.raise_for_status()
                 response_json = response.json()
 
-                if response_json.get('success', False):
-                    for action in response_json['result']:
-                        if 'actions' in action and action['actions']:
-                            ZONES[zone_name][1].append(action['actions'][0]['id'])
+                if response_json.get("success", False):
+                    for action in response_json["result"]:
+                        if "actions" in action and action["actions"]:
+                            ZONES[zone_name][1].append(action["actions"][0]["id"])
 
             except RequestException as e:
                 print(f"Error fetching page rules for zone {zone_name}: {e}")
@@ -95,7 +95,7 @@ def show_zones() -> None:
     table_data = []
     for zone_name, zone_data in ZONES.items():
         zone_id = zone_data[0]
-        page_rules = ', '.join(zone_data[1])
+        page_rules = ", ".join(zone_data[1])
         table_data.append([zone_name, zone_id, page_rules])
     
     headers = ["Zone Name", "Zone ID", "Page Rules"]
